@@ -19,7 +19,7 @@ import org.koin.ktor.ext.inject
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
-@kotlin.jvm.JvmOverloads
+//@kotlin.jvm.JvmOverloads
 fun Application.module() {
     install(ContentNegotiation) {
         jackson {
@@ -37,21 +37,13 @@ fun Application.module() {
 
     routing {
         post("/adduser") {
-            val request = call.receive<String>()
-            databaseAccessor.insertUser(request)
-            call.respondText("OK", ContentType.Text.Plain)
+            val request = call.receive<UserData>()
+            databaseAccessor.insertUser(request.name)
+            call.respondText("${request.name} + ${request.pet}", ContentType.Text.Plain)
         }
 
         get("/users") {
             call.respond(databaseAccessor.getUsers())
-        }
-
-        get("/") {
-            call.respondText("HELLO WORLD!", contentType = ContentType.Text.Plain)
-        }
-
-        get("/json/jackson") {
-            call.respond(mapOf("hello" to "world"))
         }
     }
 }
