@@ -5,21 +5,15 @@ import io.ktor.response.*
 import io.ktor.request.*
 import io.ktor.routing.*
 import io.ktor.http.*
-import io.ktor.html.*
-import kotlinx.html.*
-import kotlinx.css.*
 import com.fasterxml.jackson.databind.*
 import io.ktor.jackson.*
 import io.ktor.features.*
-import io.ktor.client.*
-import io.ktor.client.engine.apache.*
 import org.koin.ktor.ext.Koin
 import org.koin.ktor.ext.inject
 
 fun main(args: Array<String>): Unit = io.ktor.server.netty.EngineMain.main(args)
 
 @Suppress("unused") // Referenced in application.conf
-//@kotlin.jvm.JvmOverloads
 fun Application.module() {
     install(ContentNegotiation) {
         jackson {
@@ -37,13 +31,23 @@ fun Application.module() {
 
     routing {
         post("/adduser") {
-            val request = call.receive<UserData>()
-            databaseAccessor.insertUser(request.name)
+            val request = call.receive<AddUserRequest>()
+            databaseAccessor.insertUser(request)
             call.respondText("${request.name} + ${request.pet}", ContentType.Text.Plain)
         }
 
         get("/users") {
-            call.respond(databaseAccessor.getUsers())
+            call.respond(databaseAccessor.getUsersNames())
+        }
+
+        post("/userpet") {
+            val request = call.receive<GetUserPetRequest>()
+            val result = databaseAccessor.getUserPet(request.name)
+            if (result.isNullOrEmpty()) {
+                call.respondText("No pet =(", ContentType.Text.Plain)
+            } else {
+                call.respond(result)
+            }
         }
     }
 }
